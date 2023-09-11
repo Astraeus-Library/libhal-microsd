@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace hal::__device__ {
-extern void __device___test();
-}  // namespace hal::__device__
+namespace hal::microsd {
+extern void microsd_test();
+}  // namespace hal::microsd
 
 int main()
 {
-  hal::__device__::__device___test();
+  hal::microsd::microsd_test();
 }

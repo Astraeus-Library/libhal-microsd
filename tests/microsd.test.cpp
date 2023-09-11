@@ -12,7 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "libhal-__device__/__device__.hpp"
+#include <libhal-microsd/microsd.hpp>
 
-namespace hal::__device__ {
-}  // namespace hal::__device__
+#include <boost/ut.hpp>
+
+namespace hal::microsd {
+void microsd_test()
+{
+  using namespace boost::ut;
+  using namespace std::literals;
+
+  "microsd::create()"_test = []() {
+    // Setup
+    // Exercise
+    // Verify
+  };
+};
+}  // namespace hal::microsd

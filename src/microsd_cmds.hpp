@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libhal-microsd/microsd.hpp>
-#include <libhal/error.hpp>
+#pragma once
 
-int main()
-{
-  // hal::microsd::microsd;
-  return 0;
-}
+#include <libhal-util/bit.hpp>
+#include <libhal/units.hpp>
 
-namespace boost {
-void throw_exception(std::exception const& e)
-{
-  hal::halt();
-}
-}  // namespace boost
+namespace hal::microsd {
+
+static constexpr hal::byte CMD0 = 0x40;
+static constexpr hal::byte CMD8 = 0x48;
+static constexpr hal::byte CMD55 = 0x77;
+static constexpr hal::byte CMD17 = 0x51; 
+static constexpr hal::byte CMD24 = 0x58; 
+static constexpr hal::byte DUMMY_CRC = 0xFF;
+static constexpr hal::byte ACMD41 = 0x69;
+
+}  // namespace hal::microsd

@@ -30,7 +30,7 @@ hal::status application(hardware_map& p_map)
   auto& clock = *p_map.clock;
 
   auto spi2 = HAL_CHECK(hal::lpc40::spi::get(2));
-  auto chip_select = HAL_CHECK(hal::lpc40::output_pin::get(1, 10));
+  auto chip_select = HAL_CHECK(hal::lpc40::output_pin::get(1, 8));
 
   hal::print(console, "Starting MicroSD Application...\n");
   (void)hal::delay(clock, 200ms);
@@ -38,18 +38,18 @@ hal::status application(hardware_map& p_map)
   (void)hal::delay(clock, 200ms);
   std::array<unsigned char, 512> write_data = {0x00, 0x01, 0x02, 0x03};
   std::array<unsigned char, 512> read_buffer;
+  hal::print(console, "Passed Create\n");
 
   while(true){
-    
+    hal::print(console, "In While\n");
     HAL_CHECK(micro_sd.write_block(0x00000000, write_data));
+    hal::print(console, "Passed write\n");
     (void)hal::delay(clock, 200ms);
-    auto block = HAL_CHECK(micro_sd.read_block(0x00000000));
-    hal::print<128>(console, "Block: %x\n", block);
+    // auto block = HAL_CHECK(micro_sd.read_block(0x00000000));
+    // hal::print(console, "passed read\n");
+    // hal::print<128>(console, "Block: %x\n", block);
+
+    (void)hal::delay(clock, 500ms);
   }
-
-
-
-
-
   return hal::success();
 }

@@ -56,60 +56,72 @@ hal::status microsd_card::init()
 // Reading a block
 hal::result<std::array<hal::byte, 512>> microsd_card::read_block(uint32_t address)
 {
-  // Send CMD17 with the desired address
-  std::array<hal::byte, 6> read_command{
-    CMD17,
-    static_cast<hal::byte>((address >> 24) & 0xFF),
-    static_cast<hal::byte>((address >> 16) & 0xFF),
-    static_cast<hal::byte>((address >> 8) & 0xFF),
-    static_cast<hal::byte>(address & 0xFF),
-    DUMMY_CRC
-  };
-  HAL_CHECK(m_cs->level(false));
-  HAL_CHECK(hal::write(*m_spi, read_command));
+    using namespace hal::literals;
 
-  // Wait for the data token
-  std::array<hal::byte, 1> token{};
-  do {
-    HAL_CHECK(hal::read(*m_spi, token));
-  } while (token[0] == 0xFF);
+    // Send CMD17 with the desired address
+    std::array<hal::byte, 6> read_command{
+        CMD17,
+        static_cast<hal::byte>((address >> 24) & 0xFF),
+        static_cast<hal::byte>((address >> 16) & 0xFF),
+        static_cast<hal::byte>((address >> 8) & 0xFF),
+        static_cast<hal::byte>(address & 0xFF),
+        DUMMY_CRC
+    };
 
-  // Read the block data
-  HAL_CHECK(hal::read(*m_spi, m_data));
+    HAL_CHECK(m_cs->level(false));
+    HAL_CHECK(hal::write(*m_spi, read_command));
 
-  HAL_CHECK(m_cs->level(true));
-  return m_data;
+    // Wait for the data token
+    std::array<hal::byte, 1> token{};
+    int retry = 0;
+    do {
+        HAL_CHECK(hal::read(*m_spi, token));
+        retry++;
+        if (retry > 1000) {  // You can adjust this limit
+            HAL_CHECK(m_cs->level(true));
+        }
+    } while (token[0] != 0xFE);
+
+    // Read the block data
+    HAL_CHECK(hal::read(*m_spi, m_data));
+
+    // Read CRC bytes (assuming 2 CRC bytes, you can adjust as necessary)
+    std::array<hal::byte, 2> crc{};
+    HAL_CHECK(hal::read(*m_spi, crc));
+
+    HAL_CHECK(m_cs->level(true));
+    return m_data;
 }
+
 
 // Writing a block
 hal::status microsd_card::write_block(uint32_t address, std::array<hal::byte, 512> data)
 {
-  std::array<hal::byte, 1> dummy_crc_arr = { DUMMY_CRC };
-  // Send CMD24 with the desired address
-  std::array<hal::byte, 6> write_command{
-    CMD24,
-    static_cast<hal::byte>((address >> 24) & 0xFF),
-    static_cast<hal::byte>((address >> 16) & 0xFF),
-    static_cast<hal::byte>((address >> 8) & 0xFF),
-    static_cast<hal::byte>(address & 0xFF),
-    DUMMY_CRC
-  };
+    using namespace hal::literals;
+    
+    std::array<hal::byte, 1> dummy_crc_arr = { DUMMY_CRC };
+    std::array<hal::byte, 6> write_command{
+        CMD24,
+        static_cast<hal::byte>((address >> 24) & 0xFF),
+        static_cast<hal::byte>((address >> 16) & 0xFF),
+        static_cast<hal::byte>((address >> 8) & 0xFF),
+        static_cast<hal::byte>(address & 0xFF),
+        DUMMY_CRC
+    };
+    
+    std::array<hal::byte, 1> start_token = { 0xFE };
 
-  HAL_CHECK(m_cs->level(false));
-  HAL_CHECK(hal::write(*m_spi, write_command));
+    HAL_CHECK(m_cs->level(false));
+    HAL_CHECK(hal::write(*m_spi, write_command));
+    HAL_CHECK(hal::write(*m_spi, start_token));
+    HAL_CHECK(hal::write(*m_spi, data));
+    HAL_CHECK(hal::write(*m_spi, dummy_crc_arr));
+    HAL_CHECK(hal::write(*m_spi, dummy_crc_arr));
 
-  // Send the data token indicating start of the block
-  std::array<hal::byte, 1> start_token = { 0xFE };
-  HAL_CHECK(hal::write(*m_spi, start_token));
+    // Deactivate chip select
+    HAL_CHECK(m_cs->level(true));
 
-  // Write the block data
-  HAL_CHECK(hal::write(*m_spi, data));
-
-  // Ignore card's data response token and send dummy CRC
-  HAL_CHECK(hal::write(*m_spi, dummy_crc_arr));
-  HAL_CHECK(hal::write(*m_spi, dummy_crc_arr));
-
-  HAL_CHECK(m_cs->level(true));
+    return hal::success();
 }
 
 }  // namespace hal::microsd

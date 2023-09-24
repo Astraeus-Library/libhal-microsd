@@ -33,7 +33,7 @@ hal::result<hardware_map> initialize_platform()
   using namespace hal::literals;
 
   // Set the MCU to the maximum clock speed
-  HAL_CHECK(hal::lpc40::clock::maximum(10.0_MHz));
+  HAL_CHECK(hal::lpc40::clock::maximum(12.0_MHz));
 
   // Create a hardware counter
   auto& clock = hal::lpc40::clock::get();

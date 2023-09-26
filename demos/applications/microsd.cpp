@@ -36,20 +36,22 @@ hal::status application(hardware_map& p_map)
   (void)hal::delay(clock, 200ms);
   auto micro_sd = HAL_CHECK(hal::microsd::microsd_card::create(spi2, chip_select));
   (void)hal::delay(clock, 200ms);
-  std::array<unsigned char, 512> write_data = {0x00, 0x01, 0x02, 0x03};
-  std::array<unsigned char, 512> read_buffer;
-  hal::print(console, "Passed Create\n");
+  std::array<unsigned char, 512> write_data = {0x69, 0x45, 0x22, 0x55};
+  std::array<unsigned char, 15> read_buffer;
 
-  while(true){
-    hal::print(console, "In While\n");
+while(true) {
     HAL_CHECK(micro_sd.write_block(0x00000000, write_data));
-    hal::print(console, "Passed write\n");
+    // print thr data being written
     (void)hal::delay(clock, 200ms);
-    // auto block = HAL_CHECK(micro_sd.read_block(0x00000000));
-    // hal::print(console, "passed read\n");
-    // hal::print<128>(console, "Block: %x\n", block);
+
+    auto block = HAL_CHECK(micro_sd.read_block(0x00000000));
+
+    // Print first N bytes of read data for verification
+    for (size_t i = 0; i < 15; i++) {  // Just an example, adjust '10' as per your requirements.
+        hal::print<128>(console, "Data[%d]: %x\n", i, block[i]);
+    }
 
     (void)hal::delay(clock, 500ms);
-  }
+}
   return hal::success();
 }

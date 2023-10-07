@@ -122,6 +122,13 @@ hal::result<std::array<hal::byte, 512>> microsd_card::read_block(
   // Use the write_then_read function for the entire transaction
     HAL_CHECK(hal::write(*m_spi, read_command));
     delay(10);
+
+        // Read data into buffer until start token is found
+    std::array<hal::byte, 1> m_check;
+    do {
+        HAL_CHECK(hal::read(*m_spi, m_check));
+    } while (m_check[0] != 0xFE);
+
     HAL_CHECK(hal::read(*m_spi, m_data));
 //   HAL_CHECK(hal::write_then_read(*m_spi, read_command, m_data));
 
@@ -156,7 +163,6 @@ hal::status microsd_card::write_block(uint32_t address,
   delay(1);
   HAL_CHECK(hal::write(*m_spi, start_token));
   HAL_CHECK(hal::write(*m_spi, data));
-
     delay(10);
   HAL_CHECK(hal::write(*m_spi, dummy_crc_arr));
   HAL_CHECK(hal::write(*m_spi, dummy_crc_arr));

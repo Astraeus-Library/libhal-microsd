@@ -19,12 +19,13 @@
 
 namespace hal::microsd {
 
-static constexpr hal::byte CMD0 = 0x40;
-static constexpr hal::byte CMD8 = 0x48;
+static constexpr hal::byte CMD0 = 0x40; //reset
+static constexpr hal::byte CMD8 = 0x48; //check voltage and card type
 static constexpr hal::byte CMD55 = 0x77;
-static constexpr hal::byte CMD17 = 0x51; 
-static constexpr hal::byte CMD24 = 0x58; 
-static constexpr hal::byte DUMMY_CRC = 0xFF;
+static constexpr hal::byte CMD58 = 0x7A; //read OCR register
+static constexpr hal::byte CMD17 = 0x51; //read block
+static constexpr hal::byte CMD24 = 0x58; //write block
+static constexpr hal::byte DUMMY_CRC = 0x95; //dummy crc for CMD0 
 static constexpr hal::byte ACMD41 = 0x69;
-
+  
 }  // namespace hal::microsd

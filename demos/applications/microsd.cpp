@@ -36,19 +36,29 @@ hal::status application(hardware_map& p_map)
   (void)hal::delay(clock, 200ms);
   auto micro_sd = HAL_CHECK(hal::microsd::microsd_card::create(spi2, chip_select));
   (void)hal::delay(clock, 200ms);
-  std::array<unsigned char, 512> write_data = {0x69, 0x45, 0x22, 0x55};
+  std::array<unsigned char, 512> write_data = {0x69, 0x45, 0x22, 0x55, 0x49, 0x69, 0x45, 0x22, 0x55};
   std::array<unsigned char, 512> read_buffer;
 
+
+
 while(true) {
-    HAL_CHECK(micro_sd.write_block(0x00000000, write_data));
+    HAL_CHECK(micro_sd.write_block(0, write_data));
     // print thr data being written
     (void)hal::delay(clock, 200ms);
 
-    auto block = HAL_CHECK(micro_sd.read_block(0x00000000));
+    auto real_capacity = HAL_CHECK(micro_sd.GetCapacity());
+    hal::print<128>(console, "Real Capacity: %x\n", real_capacity);
+
+    auto capacity = HAL_CHECK(micro_sd.read_csd_register());
+    for (size_t i = 0; i < 25; i++) {  // Just an example, adjust '10' as per your requirements.
+        hal::print<128>(console, "Capacity Data[%d]: %x\n", i, capacity[i]);
+    }
+
+    auto block = HAL_CHECK(micro_sd.read_block(0, read_buffer));
 
     // Print first N bytes of read data for verification
     hal::print(console, "Read Data:\n");
-    for (size_t i = 0; i < 512; i++) {  // Just an example, adjust '10' as per your requirements.
+    for (size_t i = 0; i < 10; i++) {  // Just an example, adjust '10' as per your requirements.
         hal::print<128>(console, "Data[%d]: %x\n", i, block[i]);
     }
 

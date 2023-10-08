@@ -70,8 +70,13 @@ public:
                                               hal::output_pin& p_cs);
   hal::status init();
   hal::status delay(int p_cycles);
-  hal::result<std::array<hal::byte, 512>> read_block(uint32_t address);
+  hal::result<std::array<hal::byte, 512>> read_block(uint32_t address, std::array<hal::byte, 512> data);
   hal::status write_block(uint32_t address, std::array<hal::byte, 512> data);
+
+
+  hal::result<uint32_t> read_c_size();
+  hal::result<uint64_t> GetCapacity();
+  hal::result<std::array<hal::byte, 16>> read_csd_register();
 
 private:
   explicit microsd_card(hal::spi& p_spi, hal::output_pin& p_cs)
@@ -80,9 +85,9 @@ private:
   {
   }
 
+
   hal::spi* m_spi;
   hal::output_pin* m_cs;
-  std::array<hal::byte, 512> m_data{};
   std::array<hal::byte, 1> m_wait{ 0xFF };
 };
 }  // namespace hal::microsd

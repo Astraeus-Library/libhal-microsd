@@ -41,7 +41,6 @@ hal::spi::settings p_settings = hal::spi::settings{
   std::array<hal::byte, 6> cmd55{Command::CMD55, 0x00, 0x00, 0x00, 0x00, 0x65};
   std::array<hal::byte, 6> cmd58{Command::CMD58, 0x00, 0x00, 0x00, 0x00, 0x00};
   std::array<hal::byte, 6> acmd41{Command::CMD41, 0x40, 0x00, 0x00, 0x00, 0x77};
-  std::array<hal::byte, 6> cmd9{ Command::CMD9, 0x00, 0x00, 0x00, 0x00, 0x95 };
   
 
   // Step 1: Power up initialization. Provide at least 74 clock cycles with CS
@@ -102,7 +101,7 @@ HAL_CHECK(m_cs->level(false));
 
 // Reading a block
 hal::result<std::array<hal::byte, 512>> microsd_card::read_block(
-  uint32_t address)
+  uint32_t address, std::array<hal::byte, 512> data)
 {
   using namespace hal::literals;
 
@@ -129,15 +128,15 @@ hal::result<std::array<hal::byte, 512>> microsd_card::read_block(
         HAL_CHECK(hal::read(*m_spi, m_check));
     } while (m_check[0] != 0xFE);
 
-    HAL_CHECK(hal::read(*m_spi, m_data));
-//   HAL_CHECK(hal::write_then_read(*m_spi, read_command, m_data));
+    HAL_CHECK(hal::read(*m_spi, data));
+//   HAL_CHECK(hal::write_then_read(*m_spi, read_command, data));
 
 //   // Read CRC bytes (assuming 2 CRC bytes, you can adjust as necessary)
 //   std::array<hal::byte, 2> crc{};
 //   HAL_CHECK(hal::read(*m_spi, crc));
 
   HAL_CHECK(m_cs->level(true));
-  return m_data;
+  return data;
 }
 
 // Writing a block
@@ -172,5 +171,67 @@ hal::status microsd_card::write_block(uint32_t address,
 
   return hal::success();
 }
+
+
+hal::result<std::array<hal::byte, 16>> microsd_card::read_csd_register()
+{
+    std::array<hal::byte, 16> csd_register = {};  // Initialize with zeros
+
+    // Prepare CMD9 command with appropriate arguments and CRC
+    std::array<hal::byte, 6> cmd9{
+        Command::CMD9,
+        0x00,  // Argument (usually zero for CMD9)
+        0x00,
+        0x00,
+        0x00,
+        0x95  // Placeholder CRC (replace with actual CRC if needed)
+    };
+
+    // Send CMD9 to SD card
+    delay(1);
+    HAL_CHECK(m_cs->level(false));
+    HAL_CHECK(hal::write(*m_spi, cmd9));
+    delay(1);
+
+        // Read data into buffer until start token is found
+    std::array<hal::byte, 1> m_check;
+    do {
+        HAL_CHECK(hal::read(*m_spi, m_check));
+    } while (m_check[0] != 0xFE);
+
+    HAL_CHECK(hal::read(*m_spi, csd_register));
+    HAL_CHECK(m_cs->level(true));
+
+    return csd_register;
+}
+
+hal::result<uint32_t> microsd_card::read_c_size()
+{
+    auto csd_register = HAL_CHECK(read_csd_register());
+
+    // Adjust bit extraction logic based on the actual CSD register structure
+    uint32_t c_size = (static_cast<uint32_t>(csd_register[7] & 0x03) << 10) |
+                      (static_cast<uint32_t>(csd_register[8]) << 2) |
+                      (static_cast<uint32_t>(csd_register[9] & 0xC0) >> 6);
+    
+    return c_size;
+}
+
+hal::result<uint64_t> microsd_card::GetCapacity()
+{
+    auto c_size = HAL_CHECK(read_c_size());
+
+    // Calculate card size: (c_size + 1) * 512KiB
+    // Adjust units and types as needed to match your system requirements
+    auto card_size = static_cast<uint64_t>(c_size + 1) * 512 * 1024;
+    
+    return card_size;  // Ensure this cast is valid and retains the needed precision
+}
+
+
+
+
+
+
 
 }  // namespace hal::microsd

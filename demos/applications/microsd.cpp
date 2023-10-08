@@ -47,12 +47,7 @@ while(true) {
     (void)hal::delay(clock, 200ms);
 
     auto real_capacity = HAL_CHECK(micro_sd.GetCapacity());
-    hal::print<128>(console, "Real Capacity: %x\n", real_capacity);
-
-    auto capacity = HAL_CHECK(micro_sd.read_csd_register());
-    for (size_t i = 0; i < 25; i++) {  // Just an example, adjust '10' as per your requirements.
-        hal::print<128>(console, "Capacity Data[%d]: %x\n", i, capacity[i]);
-    }
+    hal::print<128>(console, "Card Capacity: %fGB\n", real_capacity);
 
     auto block = HAL_CHECK(micro_sd.read_block(0, read_buffer));
 

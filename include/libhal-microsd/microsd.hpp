@@ -75,7 +75,7 @@ public:
 
 
   hal::result<uint32_t> read_c_size();
-  hal::result<uint64_t> GetCapacity();
+  hal::result<float> GetCapacity();
   hal::result<std::array<hal::byte, 16>> read_csd_register();
 
 private:

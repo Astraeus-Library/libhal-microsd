@@ -208,24 +208,24 @@ hal::result<std::array<hal::byte, 16>> microsd_card::read_csd_register()
 hal::result<uint32_t> microsd_card::read_c_size()
 {
     auto csd_register = HAL_CHECK(read_csd_register());
+    uint32_t c_size = (static_cast<uint32_t>(csd_register[6]) << 24) | 
+                      (static_cast<uint32_t>(csd_register[7]) << 16) | 
+                      (static_cast<uint32_t>(csd_register[8]) << 8)  |
+                      (static_cast<uint32_t>(csd_register[9]));  // Added this line
 
-    // Adjust bit extraction logic based on the actual CSD register structure
-    uint32_t c_size = (static_cast<uint32_t>(csd_register[7] & 0x03) << 10) |
-                      (static_cast<uint32_t>(csd_register[8]) << 2) |
-                      (static_cast<uint32_t>(csd_register[9] & 0xC0) >> 6);
-    
+    c_size = c_size & 0x3FFFFF;  // Adjust this mask as necessary to fit your data
     return c_size;
 }
 
-hal::result<uint64_t> microsd_card::GetCapacity()
+hal::result<float> microsd_card::GetCapacity()
 {
     auto c_size = HAL_CHECK(read_c_size());
 
-    // Calculate card size: (c_size + 1) * 512KiB
-    // Adjust units and types as needed to match your system requirements
-    auto card_size = static_cast<uint64_t>(c_size + 1) * 512 * 1024;
-    
-    return card_size;  // Ensure this cast is valid and retains the needed precision
+    float capacity = static_cast<float>((c_size + 1) * 512);  // in KBytes
+    capacity /= 1024;  // Convert to MBytes
+    capacity /= 1024;  // Convert to GBytes
+
+    return capacity;  // This returns the capacity in GBytes
 }
 
 

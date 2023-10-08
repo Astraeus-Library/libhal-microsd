@@ -39,15 +39,13 @@ hal::status application(hardware_map& p_map)
   std::array<unsigned char, 512> write_data = {0x69, 0x45, 0x22, 0x55, 0x49, 0x69, 0x45, 0x22, 0x55};
   std::array<unsigned char, 512> read_buffer;
 
-
+  auto real_capacity = HAL_CHECK(micro_sd.GetCapacity());
+  hal::print<128>(console, "Card Capacity: %.2f GB\n", real_capacity);
 
 while(true) {
     HAL_CHECK(micro_sd.write_block(0, write_data));
     // print thr data being written
     (void)hal::delay(clock, 200ms);
-
-    auto real_capacity = HAL_CHECK(micro_sd.GetCapacity());
-    hal::print<128>(console, "Card Capacity: %fGB\n", real_capacity);
 
     auto block = HAL_CHECK(micro_sd.read_block(0, read_buffer));
 

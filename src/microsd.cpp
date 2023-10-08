@@ -77,13 +77,6 @@ hal::spi::settings p_settings = hal::spi::settings{
     delay(10);
     HAL_CHECK(m_cs->level(true));
 
-//     p_settings = hal::spi::settings{
-//     .clock_rate = 400.0_kHz,
-//   };
-//   *m_spi->configure(p_settings);
-
-  // TODO: Check and handle the response.
-
   return hal::success();
 }
 
@@ -129,12 +122,6 @@ hal::result<std::array<hal::byte, 512>> microsd_card::read_block(
     } while (m_check[0] != 0xFE);
 
     HAL_CHECK(hal::read(*m_spi, data));
-//   HAL_CHECK(hal::write_then_read(*m_spi, read_command, data));
-
-//   // Read CRC bytes (assuming 2 CRC bytes, you can adjust as necessary)
-//   std::array<hal::byte, 2> crc{};
-//   HAL_CHECK(hal::read(*m_spi, crc));
-
   HAL_CHECK(m_cs->level(true));
   return data;
 }
@@ -159,19 +146,16 @@ hal::status microsd_card::write_block(uint32_t address,
 
   HAL_CHECK(m_cs->level(false));
   HAL_CHECK(hal::write(*m_spi, write_command));
-  delay(1);
+  delay(10);
   HAL_CHECK(hal::write(*m_spi, start_token));
   HAL_CHECK(hal::write(*m_spi, data));
     delay(10);
   HAL_CHECK(hal::write(*m_spi, dummy_crc_arr));
   HAL_CHECK(hal::write(*m_spi, dummy_crc_arr));
-
-  // Deactivate chip select
   HAL_CHECK(m_cs->level(true));
 
   return hal::success();
 }
-
 
 hal::result<std::array<hal::byte, 16>> microsd_card::read_csd_register()
 {
@@ -227,6 +211,13 @@ hal::result<float> microsd_card::GetCapacity()
 
     return capacity;  // This returns the capacity in GBytes
 }
+
+// ------------------------------- High Level Functions -------------------------------
+
+// Add read, write, and erase functions here
+
+
+
 
 
 

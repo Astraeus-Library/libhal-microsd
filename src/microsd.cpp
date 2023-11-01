@@ -13,7 +13,6 @@
 // limitations under the License.
 
 #include "libhal-microsd/microsd.hpp"
-#include "microsd_cmds.hpp"
 
 namespace hal::microsd {
 
@@ -76,6 +75,11 @@ hal::spi::settings p_settings = hal::spi::settings{
     HAL_CHECK(hal::write(*m_spi, cmd58));
     delay(10);
     HAL_CHECK(m_cs->level(true));
+
+    p_settings = hal::spi::settings{
+    .clock_rate = 400.0_kHz,
+  };
+  *m_spi->configure(p_settings);
 
   return hal::success();
 }
@@ -215,10 +219,6 @@ hal::result<float> microsd_card::GetCapacity()
 // ------------------------------- High Level Functions -------------------------------
 
 // Add read, write, and erase functions here
-
-
-
-
 
 
 

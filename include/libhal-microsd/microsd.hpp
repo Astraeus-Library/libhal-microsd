@@ -25,6 +25,7 @@ class microsd_card
 public:
 
     static constexpr hal::byte kCommandBase = 0x40;
+    static constexpr hal::byte DUMMY_CRC = 0x95;
 
   enum Command
   {

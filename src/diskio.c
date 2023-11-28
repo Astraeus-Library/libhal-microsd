@@ -17,40 +17,16 @@
 
 
 /*-----------------------------------------------------------------------*/
-/* Get Drive Status                                                      */
+/* Get Drive Status                              d                        */
 /*-----------------------------------------------------------------------*/
 
-DSTATUS disk_status (
-	BYTE pdrv		/* Physical drive nmuber to identify the drive */
-)
-{
-	DSTATUS stat;
-	int result;
-
-	switch (pdrv) {
-	case DEV_RAM :
-		result = RAM_disk_status();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case DEV_MMC :
-		result = MMC_disk_status();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case DEV_USB :
-		result = USB_disk_status();
-
-		// translate the reslut code here
-
-		return stat;
-	}
-	return STA_NOINIT;
+DSTATUS disk_status (BYTE pdrv) {
+    if(pdrv == 0) {
+        return RES_OK;
+    }
+    return STA_NOINIT;
 }
+
 
 
 
@@ -58,37 +34,16 @@ DSTATUS disk_status (
 /* Inidialize a Drive                                                    */
 /*-----------------------------------------------------------------------*/
 
-DSTATUS disk_initialize (
-	BYTE pdrv				/* Physical drive nmuber to identify the drive */
-)
-{
-	DSTATUS stat;
-	int result;
-
-	switch (pdrv) {
-	case DEV_RAM :
-		result = RAM_disk_initialize();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case DEV_MMC :
-		result = MMC_disk_initialize();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case DEV_USB :
-		result = USB_disk_initialize();
-
-		// translate the reslut code here
-
-		return stat;
-	}
-	return STA_NOINIT;
+DSTATUS disk_initialize (BYTE pdrv) {
+    if(pdrv == 0) {
+        // Assuming you instantiate the SD card somewhere globally.
+        if(sd.init() == hal::success()) {
+            return RES_OK;
+        }
+    }
+    return STA_NOINIT;
 }
+
 
 
 
@@ -96,47 +51,21 @@ DSTATUS disk_initialize (
 /* Read Sector(s)                                                        */
 /*-----------------------------------------------------------------------*/
 
-DRESULT disk_read (
-	BYTE pdrv,		/* Physical drive nmuber to identify the drive */
-	BYTE *buff,		/* Data buffer to store read data */
-	LBA_t sector,	/* Start sector in LBA */
-	UINT count		/* Number of sectors to read */
-)
-{
-	DRESULT res;
-	int result;
-
-	switch (pdrv) {
-	case DEV_RAM :
-		// translate the arguments here
-
-		result = RAM_disk_read(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case DEV_MMC :
-		// translate the arguments here
-
-		result = MMC_disk_read(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case DEV_USB :
-		// translate the arguments here
-
-		result = USB_disk_read(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-	}
-
-	return RES_PARERR;
+DRESULT disk_read (BYTE pdrv, BYTE *buff, DWORD sector, UINT count) {
+    if(pdrv == 0) {
+        while(count--) {
+            auto result = sd.read_block(sector, buff);
+            if(result != hal::success()) {
+                return RES_ERROR;
+            }
+            buff += 512;  // Increase buffer pointer.
+            sector++;
+        }
+        return RES_OK;
+    }
+    return RES_PARERR;
 }
+
 
 
 
@@ -146,47 +75,20 @@ DRESULT disk_read (
 
 #if FF_FS_READONLY == 0
 
-DRESULT disk_write (
-	BYTE pdrv,			/* Physical drive nmuber to identify the drive */
-	const BYTE *buff,	/* Data to be written */
-	LBA_t sector,		/* Start sector in LBA */
-	UINT count			/* Number of sectors to write */
-)
-{
-	DRESULT res;
-	int result;
-
-	switch (pdrv) {
-	case DEV_RAM :
-		// translate the arguments here
-
-		result = RAM_disk_write(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case DEV_MMC :
-		// translate the arguments here
-
-		result = MMC_disk_write(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case DEV_USB :
-		// translate the arguments here
-
-		result = USB_disk_write(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-	}
-
-	return RES_PARERR;
+DRESULT disk_write (BYTE pdrv, const BYTE *buff, DWORD sector, UINT count) {
+    if(pdrv == 0) {
+        while(count--) {
+            if(sd.write_block(sector, buff) != hal::success()) {
+                return RES_ERROR;
+            }
+            buff += 512;
+            sector++;
+        }
+        return RES_OK;
+    }
+    return RES_PARERR;
 }
+
 
 #endif
 
@@ -195,35 +97,23 @@ DRESULT disk_write (
 /* Miscellaneous Functions                                               */
 /*-----------------------------------------------------------------------*/
 
-DRESULT disk_ioctl (
-	BYTE pdrv,		/* Physical drive nmuber (0..) */
-	BYTE cmd,		/* Control code */
-	void *buff		/* Buffer to send/receive control data */
-)
-{
-	DRESULT res;
-	int result;
-
-	switch (pdrv) {
-	case DEV_RAM :
-
-		// Process of the command for the RAM drive
-
-		return res;
-
-	case DEV_MMC :
-
-		// Process of the command for the MMC/SD card
-
-		return res;
-
-	case DEV_USB :
-
-		// Process of the command the USB drive
-
-		return res;
-	}
-
-	return RES_PARERR;
+DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void *buff) {
+    if(pdrv == 0) {
+        switch(cmd) {
+            case CTRL_SYNC:
+                return RES_OK; 
+            case GET_SECTOR_COUNT:
+                // This can be improved using card capacity commands
+                *(DWORD*)buff = 0x1000000; // Placeholder
+                return RES_OK;
+            case GET_BLOCK_SIZE:
+                *(DWORD*)buff = 512; // SD card's block size is 512 bytes
+                return RES_OK;
+            default:
+                return RES_PARERR;
+        }
+    }
+    return RES_PARERR;
 }
+
 

@@ -20,42 +20,59 @@
 
 #include "../hardware_map.hpp"
 #include <libhal-microsd/microsd.hpp>
+#include "libhal-microsd/ff.h"
 
-hal::status application(hardware_map& p_map)
-{
-  using namespace std::chrono_literals;
-  using namespace hal::literals;
+// Global microSD card instance
+hal::microsd::microsd_card sd;
 
-  auto& console = *p_map.console;
-  auto& clock = *p_map.clock;
+hal::status application(hardware_map& p_map) {
+    using namespace std::chrono_literals;
+    using namespace hal::literals;
 
-  auto spi2 = HAL_CHECK(hal::lpc40::spi::get(2));
-  auto chip_select = HAL_CHECK(hal::lpc40::output_pin::get(1, 8));
+    auto& console = *p_map.console;
+    auto& clock = *p_map.clock;
 
-  hal::print(console, "Starting MicroSD Application...\n");
-  (void)hal::delay(clock, 200ms);
-  auto micro_sd = HAL_CHECK(hal::microsd::microsd_card::create(spi2, chip_select));
-  (void)hal::delay(clock, 200ms);
-  std::array<unsigned char, 512> write_data = {0x69, 0x45, 0x22, 0x55, 0x49, 0x69, 0x45, 0x22, 0x55};
-  std::array<unsigned char, 512> read_buffer;
+    // Initialize SPI and Chip Select
+    auto spi2 = HAL_CHECK(hal::lpc40::spi::get(2));
+    auto chip_select = HAL_CHECK(hal::lpc40::output_pin::get(1, 8));
 
-  auto real_capacity = HAL_CHECK(micro_sd.GetCapacity());
-  hal::print<128>(console, "Card Capacity: %.2f GB\n", real_capacity);
-
-while(true) {
-    HAL_CHECK(micro_sd.write_block(0, write_data));
-    // print thr data being written
+    hal::print(console, "Starting MicroSD Application...\n");
     (void)hal::delay(clock, 200ms);
 
-    auto block = HAL_CHECK(micro_sd.read_block(0, read_buffer));
+    // Create the microsd_card instance
+    auto micro_sd_result = hal::microsd::microsd_card::create(spi2, chip_select);
 
-    // Print first N bytes of read data for verification
-    hal::print(console, "Read Data:\n");
-    for (size_t i = 0; i < 10; i++) {  // Just an example, adjust '10' as per your requirements.
-        hal::print<128>(console, "Data[%d]: %x\n", i, block[i]);
+    // Assign the created microSD card to the global instance
+    sd = micro_sd_result.value();
+
+    // Filesystem operations
+    FATFS fs;   // Filesystem object
+    FIL file;   // File object
+    UINT written, read;
+    char buffer[100] = "Hello World!";
+    char readBuffer[100];
+
+    // Mount the filesystem
+    if (f_mount(&fs, "", 0) == FR_OK) {
+        // Open or create a file
+        if (f_open(&file, "test.txt", FA_WRITE | FA_CREATE_ALWAYS) == FR_OK) {
+            // Write to the file
+            f_write(&file, buffer, strlen(buffer), &written);
+            f_close(&file);
+        }
+
+        // Open the file for reading
+        if (f_open(&file, "test.txt", FA_READ) == FR_OK) {
+            // Read the file
+            f_read(&file, readBuffer, sizeof(readBuffer), &read);
+            f_close(&file);
+        }
+
+        // Unmount the filesystem
+        f_mount(NULL, "", 0);
     }
 
-    (void)hal::delay(clock, 500ms);
-}
-  return hal::success();
+    // Your additional operations...
+
+    return hal::success();
 }

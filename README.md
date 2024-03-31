@@ -1,10 +1,10 @@
-# libhal-microsd
+# libhal-sd
 
-[![✅ Checks](https://github.com/libhal/libhal-microsd/actions/workflows/ci.yml/badge.svg)](https://github.com/libhal/libhal-microsd/actions/workflows/ci.yml)
-[![Coverage](https://libhal.github.io/libhal-microsd/coverage/coverage.svg)](https://libhal.github.io/libhal-microsd/coverage/)
-[![GitHub stars](https://img.shields.io/github/stars/libhal/libhal-microsd.svg)](https://github.com/libhal/libhal-microsd/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/libhal/libhal-microsd.svg)](https://github.com/libhal/libhal-microsd/network)
-[![GitHub issues](https://img.shields.io/github/issues/libhal/libhal-microsd.svg)](https://github.com/libhal/libhal-microsd/issues)
+[![✅ Checks](https://github.com/libhal/libhal-sd/actions/workflows/ci.yml/badge.svg)](https://github.com/libhal/libhal-sd/actions/workflows/ci.yml)
+[![Coverage](https://libhal.github.io/libhal-sd/coverage/coverage.svg)](https://libhal.github.io/libhal-sd/coverage/)
+[![GitHub stars](https://img.shields.io/github/stars/libhal/libhal-sd.svg)](https://github.com/libhal/libhal-sd/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/libhal/libhal-sd.svg)](https://github.com/libhal/libhal-sd/network)
+[![GitHub issues](https://img.shields.io/github/issues/libhal/libhal-sd.svg)](https://github.com/libhal/libhal-sd/issues)
 
 libhal compatible device library for the microsd device.
 
@@ -41,7 +41,7 @@ To make your own libhal library:
 
 ## About the libhal-device template
 
-The libhal-microsd repository is a template for creating device libraries in
+The libhal-sd repository is a template for creating device libraries in
 the libhal ecosystem. It provides a structured layout and a set of files to help
 you get started with creating your own device library.
 
@@ -88,7 +88,7 @@ library. It includes:
 - `platforms/lpc4074.cpp` and `platforms/lpc4078.cpp`: Platform-specific
   implementations for the demo applications.
 
-## include/libhal-microsd
+## include/libhal-sd
 
 This directory contains the header files for the device library. It currently
 includes `microsd.hpp`, which is a placeholder for the main header file of

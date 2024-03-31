@@ -1,4 +1,4 @@
-# Copyright 2023 Google LLC
+# Copyright 2024 Khalil Estell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,26 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 cmake_minimum_required(VERSION 3.15)
 
-project(libhal-microsd VERSION 0.0.1 LANGUAGES CXX)
+project(libhal-sd LANGUAGES CXX)
 
-find_package(libhal REQUIRED CONFIG)
-find_package(libhal-util REQUIRED CONFIG)
+libhal_test_and_make_library(
+  LIBRARY_NAME libhal-sd
 
-add_library(libhal-microsd src/microsd.cpp)
+  SOURCES
+  src/microsd.cpp
 
-target_include_directories(libhal-microsd PUBLIC include)
-target_compile_features(libhal-microsd PRIVATE cxx_std_20)
-target_compile_options(libhal-microsd PRIVATE -Wall -Wextra)
-target_link_libraries(libhal-microsd PRIVATE
-  libhal::libhal
-  libhal::util
+  TEST_SOURCES
+  tests/sd.test.cpp
+  tests/main.test.cpp
 )
-
-if(NOT BUILD_TESTING STREQUAL OFF)
-  add_subdirectory(tests)
-endif()
-
-install(TARGETS libhal-microsd)

@@ -1,7 +1,7 @@
 #include "diskio.h"  // Include FatFS disk I/O interface
-#include "libhal-microsd/microsd.hpp"
+#include "libhal-sd/microsd.hpp"
 
-using namespace hal::microsd;
+using namespace hal::sd;
 
 extern microsd_card sd; // Assuming you've created a global instance of your microsd_card class somewhere
 

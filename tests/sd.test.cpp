@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libhal-microsd/microsd.hpp>
+#include <libhal-sd/microsd.hpp>
 
 #include <boost/ut.hpp>
 
-namespace hal::microsd {
+namespace hal::sd {
 void microsd_test()
 {
   using namespace boost::ut;
@@ -28,4 +28,4 @@ void microsd_test()
     // Verify
   };
 };
-}  // namespace hal::microsd
+}  // namespace hal::sd

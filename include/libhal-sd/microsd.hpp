@@ -19,7 +19,7 @@
 #include <libhal/output_pin.hpp>
 #include <libhal/spi.hpp>
 
-namespace hal::microsd {
+namespace hal::sd {
 class microsd_card
 {
 public:
@@ -65,29 +65,22 @@ public:
                                 // CMD1 (must precede with CMD55)
   };
 
-  [[nodiscard]] static result<microsd_card> create(hal::spi& p_spi,
-                                                   hal::output_pin& p_cs);
-  hal::status init();
-  hal::result<std::array<hal::byte, 512>> read_block(
-    uint32_t address,
-    std::array<hal::byte, 512> data);
-  hal::status write_block(uint32_t address, std::array<hal::byte, 512> data);
+  explicit microsd_card(hal::spi& p_spi, hal::output_pin& p_cs);
+  void init();
+  std::array<hal::byte, 512> read_block(uint32_t address,
+                                        std::array<hal::byte, 512> data);
+  void write_block(uint32_t address, std::array<hal::byte, 512> data);
 
-  hal::result<uint32_t> read_c_size();
-  hal::result<float> GetCapacity();
-  hal::result<std::array<hal::byte, 16>> read_csd_register();
+  uint32_t read_c_size();
+  float GetCapacity();
+  std::array<hal::byte, 16> read_csd_register();
 
 private:
-  explicit microsd_card(hal::spi& p_spi, hal::output_pin& p_cs)
-    : m_spi(&p_spi)
-    , m_cs(&p_cs)
-  {
-  }
 
-  hal::status delay(int p_cycles);
+  void delay(int p_cycles);
 
   hal::spi* m_spi;
   hal::output_pin* m_cs;
   std::array<hal::byte, 1> m_wait{ 0xFF };
 };
-}  // namespace hal::microsd
+}  // namespace hal::sd

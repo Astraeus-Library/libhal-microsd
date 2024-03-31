@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libhal-microsd/microsd.hpp>
+#include <libhal-sd/microsd.hpp>
 #include <libhal/error.hpp>
 
 int main()
 {
-  // hal::microsd::microsd;
+  // hal::sd::microsd;
   return 0;
 }
 

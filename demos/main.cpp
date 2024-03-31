@@ -1,4 +1,4 @@
-// Copyright 2023 Google LLC
+// Copyright 2024 Khalil Estell
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,37 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <libhal/error.hpp>
 #include "hardware_map.hpp"
+
+hal::sd::hardware_map_t hardware_map{};
+volatile std::errc init_error_code{};
 
 int main()
 {
-  auto processor_status = initialize_processor();
-
-  if (!processor_status) {
+  try {
+    hardware_map = initialize_platform();
+  } catch (const hal::exception& p_error) {
+    init_error_code = p_error.error_code();
     hal::halt();
   }
 
-  auto platform_status = initialize_platform();
-
-  if (!platform_status) {
-    hal::halt();
-  }
-
-  auto hardware_map = platform_status.value();
-  auto is_finished = application(hardware_map);
-
-  if (!is_finished) {
-    hardware_map.reset();
-  } else {
-    hal::halt();
-  }
+  application(hardware_map);
 
   return 0;
 }
-
-namespace boost {
-void throw_exception([[maybe_unused]] std::exception const& e)
-{
-  hal::halt();
-}
-}  // namespace boost

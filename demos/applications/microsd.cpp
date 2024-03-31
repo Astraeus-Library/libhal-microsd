@@ -19,9 +19,9 @@
 #include <libhal-util/steady_clock.hpp>
 
 #include "../hardware_map.hpp"
-#include <libhal-microsd/microsd.hpp>
+#include <libhal-sd/microsd.hpp>
 
-hal::status application(hardware_map& p_map)
+void application(hal::sd::hardware_map_t& p_map)
 {
   using namespace std::chrono_literals;
   using namespace hal::literals;
@@ -29,30 +29,30 @@ hal::status application(hardware_map& p_map)
   auto& console = *p_map.console;
   auto& clock = *p_map.clock;
 
-  auto spi2 = HAL_CHECK(hal::lpc40::spi::get(2));
-  auto chip_select = HAL_CHECK(hal::lpc40::output_pin::get(1, 8));
+  hal::lpc40::spi spi2(2);
+  hal::lpc40::output_pin chip_select(1, 8);
 
   hal::print(console, "Starting MicroSD Application...\n");
   (void)hal::delay(clock, 200ms);
-  auto micro_sd = HAL_CHECK(hal::microsd::microsd_card::create(spi2, chip_select));
+  hal::sd::microsd_card micro_sd(spi2, chip_select);
   (void)hal::delay(clock, 200ms);
-  std::array<unsigned char, 512> write_data = {0x69, 0x45, 0x22, 0x55};
+  std::array<unsigned char, 512> write_data = { 0x69, 0x45, 0x22, 0x55 };
   std::array<unsigned char, 512> read_buffer;
 
-while(true) {
-    HAL_CHECK(micro_sd.write_block(0x00000000, write_data));
+  while (true) {
+    micro_sd.write_block(0x00000000, write_data);
     // print thr data being written
     (void)hal::delay(clock, 200ms);
 
-    auto block = HAL_CHECK(micro_sd.read_block(0x00000000));
+    auto block = micro_sd.read_block(0x00000000, read_buffer);
 
     // Print first N bytes of read data for verification
     hal::print(console, "Read Data:\n");
-    for (size_t i = 0; i < 512; i++) {  // Just an example, adjust '10' as per your requirements.
-        hal::print<128>(console, "Data[%d]: %x\n", i, block[i]);
+    for (size_t i = 0; i < 512;
+         i++) {  // Just an example, adjust '10' as per your requirements.
+      hal::print<128>(console, "Data[%d]: %x\n", i, block[i]);
     }
 
     (void)hal::delay(clock, 500ms);
-}
-  return hal::success();
+  }
 }
